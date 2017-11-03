@@ -1,0 +1,18 @@
+WITH first_last_stops AS (
+	SELECT s.trip_id, strftime('%s', s.arrival_time) as arrival_time, s.stop_sequence
+	FROM stop_times s
+	WHERE stop_sequence IN
+		(SELECT MAX(stop_sequence)
+		FROM stop_times st
+		WHERE st.trip_id=s.trip_id
+		GROUP BY trip_id)
+	OR stop_sequence IN
+		(SELECT MIN(stop_sequence)
+		FROM stop_times st
+		WHERE st.trip_id=s.trip_id
+		GROUP BY trip_id)
+)
+
+SELECT MAX(arrival_time)-MIN(arrival_time) as expected_runtime, trip_id
+FROM first_last_stops
+GROUP BY trip_id
